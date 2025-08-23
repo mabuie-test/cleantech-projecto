@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: cleantech
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: .
+    image: cleantech-backend:local
+    command: npm run dev
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongo:27017/cleantech
+      - JWT_SECRET=devsecret
+      - JWT_EXPIRY=7d
+      - MPESA_PROVIDER=simulator
+      - FRONTEND_ORIGIN=http://localhost:3000
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:
