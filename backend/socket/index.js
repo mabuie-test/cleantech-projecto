@@ -1,4 +1,3 @@
-index.js
 
 let io = null;
 
@@ -19,3 +18,4 @@ function getIO() {
 }
 
 module.exports = { initSocket, getIO };
+
