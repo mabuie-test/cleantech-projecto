@@ -5,44 +5,51 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// NOTE: this file runs only on client (because we import it via dynamic(..., { ssr: false }))
 export default function MapView({ collectors = [], orders = [], center = [-25.97, 32.57], zoom = 12 }) {
   const [mapCenter, setMapCenter] = useState(center);
-  const [leafletReady, setLeafletReady] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // fix default marker icons (client-side only)
+    // Correção dos ícones do Leaflet (somente no cliente)
     import('leaflet').then(L => {
       try {
-        // remove existing getter to avoid issues
+        // remove getter antigo (evita warnings)
         delete L.Icon.Default.prototype._getIconUrl;
 
+        // Tenta resolver imagens via require (funciona quando o componente é client-only)
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
           iconUrl: require('leaflet/dist/images/marker-icon.png'),
           shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
         });
       } catch (err) {
-        // if require fails for images, fallback to public assets (optional)
-        console.warn('Leaflet icon fix warning:', err.message || err);
+        // fallback: usa assets públicos (copie images para /public/leaflet se preferir)
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+          iconUrl: '/leaflet/marker-icon.png',
+          shadowUrl: '/leaflet/marker-shadow.png',
+        });
       } finally {
-        setLeafletReady(true);
+        setReady(true);
       }
     }).catch(err => {
-      console.error('Failed to load leaflet for icon fix:', err);
-      setLeafletReady(true); // still allow map creation attempt
+      console.error('Erro ao carregar leaflet dinamicamente:', err);
+      setReady(true);
     });
   }, []);
 
   useEffect(() => {
     if (orders?.length) {
-      setMapCenter([orders[0].lat || center[0], orders[0].lng || center[1]]);
+      setMapCenter([orders[0].lat ?? center[0], orders[0].lng ?? center[1]]);
     }
   }, [orders, center]);
 
-  // while leaflet assets are being set, show placeholder to avoid errors
-  if (!leafletReady) {
-    return <div className="h-[420px] rounded-2xl overflow-hidden card flex items-center justify-center">Carregando mapa…</div>;
+  if (!ready) {
+    return (
+      <div className="h-[420px] rounded-2xl overflow-hidden card flex items-center justify-center">
+        Carregando mapa…
+      </div>
+    );
   }
 
   return (
@@ -52,13 +59,14 @@ export default function MapView({ collectors = [], orders = [], center = [-25.97
           attribution="© OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
         {(collectors || []).map(c => (
-          <Marker key={`col-${c._id}`} position={[c.lat || 0, c.lng || 0]}>
+          <Marker key={`col-${c._id}`} position={[c.lat ?? 0, c.lng ?? 0]}>
             <Popup>
               <div className="text-sm">
                 <div className="font-semibold">{c.name}</div>
                 <div>{c.phone}</div>
-                <div>Rating: {c.rating || 0}</div>
+                <div>Rating: {c.rating ?? 0}</div>
                 <div className="text-xs text-gray-500">Collector</div>
               </div>
             </Popup>
@@ -66,7 +74,7 @@ export default function MapView({ collectors = [], orders = [], center = [-25.97
         ))}
 
         {(orders || []).map(o => (
-          <Marker key={`ord-${o._id || o.id}`} position={[o.lat || 0, o.lng || 0]}>
+          <Marker key={`ord-${o._id ?? o.id}`} position={[o.lat ?? 0, o.lng ?? 0]}>
             <Popup>
               <div className="text-sm">
                 <div className="font-semibold">{o.type} — {o.price} MT</div>
@@ -80,4 +88,4 @@ export default function MapView({ collectors = [], orders = [], center = [-25.97
       </MapContainer>
     </div>
   );
-}
+    }
