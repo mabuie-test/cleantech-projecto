@@ -8,7 +8,7 @@ import useSWR from 'swr';
 import { ensureLogged } from '../lib/auth';
 import { safeCall } from '../lib/endpointGuard';
 
-// dynamic import client-only do MapView
+// Importa o MapView de forma dinâmica para rodar apenas no client
 const MapView = dynamic(() => import('../components/MapView'), {
   ssr: false,
 });
@@ -23,12 +23,14 @@ export default function CollectorsPage() {
     { refreshInterval: 15000 }
   );
 
-  useEffect(() => { ensureLogged(); }, []);
+  useEffect(() => {
+    ensureLogged();
+  }, []);
 
   const cols = [
     { key: 'name', label: 'Nome' },
     { key: 'phone', label: 'Telefone' },
-    { key: 'rating', label: 'Rating' }
+    { key: 'rating', label: 'Rating' },
   ];
 
   return (
@@ -38,12 +40,13 @@ export default function CollectorsPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-semibold">Recolhedores</h1>
-            <button className="btn btn-ghost" onClick={() => mutate()}>Atualizar</button>
+            <button className="btn btn-ghost" onClick={() => mutate()}>
+              Atualizar
+            </button>
           </div>
           <DataTable columns={cols} rows={data || []} empty="Sem recolhedores" />
         </div>
       </div>
     </Layout>
   );
-}  );
 }
