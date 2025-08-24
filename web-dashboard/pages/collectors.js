@@ -1,17 +1,27 @@
+// pages/collectors.js
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
-import MapView from '../components/MapView';
 import API from '../lib/api';
 import useSWR from 'swr';
 import { ensureLogged } from '../lib/auth';
 import { safeCall } from '../lib/endpointGuard';
 
+// dynamic import client-only do MapView
+const MapView = dynamic(() => import('../components/MapView'), {
+  ssr: false,
+});
+
 export default function CollectorsPage() {
-  const { data, mutate } = useSWR('/collectors', async (url) => {
-    const resp = await safeCall(API.get(url), { data: [] });
-    return resp.data || [];
-  }, { refreshInterval: 15000 });
+  const { data, mutate } = useSWR(
+    '/collectors',
+    async (url) => {
+      const resp = await safeCall(API.get(url), { data: [] });
+      return resp.data || [];
+    },
+    { refreshInterval: 15000 }
+  );
 
   useEffect(() => { ensureLogged(); }, []);
 
@@ -28,11 +38,12 @@ export default function CollectorsPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-semibold">Recolhedores</h1>
-            <button className="btn btn-ghost" onClick={()=>mutate()}>Atualizar</button>
+            <button className="btn btn-ghost" onClick={() => mutate()}>Atualizar</button>
           </div>
           <DataTable columns={cols} rows={data || []} empty="Sem recolhedores" />
         </div>
       </div>
     </Layout>
   );
+}  );
 }
