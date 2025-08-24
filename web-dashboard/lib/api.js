@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://cleantech-projecto.onrender.com/api',
   withCredentials: false, // true só se precisares enviar cookies
   timeout: 10000,
 });
