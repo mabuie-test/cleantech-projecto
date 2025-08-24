@@ -1,16 +1,16 @@
+// lib/api.js
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://cleantech-projecto.onrender.com/collectors',
-  headers: { 'Content-Type': 'application/json' }
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+  withCredentials: false, // true só se precisares enviar cookies
+  timeout: 10000,
 });
 
 API.interceptors.request.use(cfg => {
-  if (typeof window !== 'undefined') {
-    const t = localStorage.getItem('ct_token');
-    if (t) cfg.headers['Authorization'] = `Bearer ${t}`;
-  }
+  const token = typeof window !== 'undefined' && localStorage.getItem('ct_token');
+  if (token) cfg.headers.Authorization = `Bearer ${token}`;
   return cfg;
-});
+}, err => Promise.reject(err));
 
 export default API;
